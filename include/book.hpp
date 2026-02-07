@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format>
+#include <iomanip>
 #include <stdexcept>
 #include <string_view>
 
@@ -25,7 +26,20 @@ struct Book {
     double rating;
     int read_count;
 
-    // Ваш код для конструкторов здесь
+    constexpr Book(const std::string_view title, const std::string &author, const int year, const Genre &genre,
+                   const double rating, int read_count)
+        : author(author), title(title), year(year), genre(genre), rating(rating), read_count(read_count) {}
+
+    constexpr Book(const std::string_view title, const std::string &author, const int year,
+                   const std::string_view &genre, const double rating, int read_count)
+        : author(author), title(title), year(year), genre(Genre::Unknown), rating(rating), read_count(read_count) {
+        this->genre = GenreFromString(genre);
+    }
+
+    bool operator==(const Book &other) const {
+        return (author == other.author) && (title == other.title) && (year == other.year) && (genre == other.genre) &&
+               (rating == other.rating) && (read_count == other.read_count);
+    }
 };
 }  // namespace bookdb
 
@@ -57,6 +71,17 @@ struct formatter<bookdb::Genre, char> {
     }
 };
 
-// Ваш код для std::formatter<Book> здесь
+template <>
+struct formatter<bookdb::Book, char> {
+    template <typename FormatContext>
+    auto format(const bookdb::Book b, FormatContext &fc) const {
+        return format_to(fc.out(), "\"{}\" {}, {} ({}, rating {}), reads {}", b.title, b.author, b.year, b.genre,
+                         b.rating, b.read_count);
+    }
+
+    constexpr auto parse(format_parse_context &ctx) {
+        return ctx.begin();  // Просто игнорируем пользовательский формат
+    }
+};
 
 }  // namespace std

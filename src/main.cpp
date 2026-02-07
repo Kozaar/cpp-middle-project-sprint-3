@@ -20,9 +20,9 @@ int main() {
     // Create a book database
     BookDatabase<std::vector<Book>> db;
 
-    /*
+    // /*
 
-    Код закомментирован, чтобы не приводить к ошибке компиляции
+    // Код закомментирован, чтобы не приводить к ошибке компиляции
 
     // Add some books
     db.EmplaceBack("1984", "George Orwell", 1949, Genre::SciFi, 4., 190);
@@ -52,8 +52,8 @@ int main() {
     auto genreRatings = calculateGenreRatings(db.begin(), db.end());
     std::print("\n\nAverage ratings by genres: {}\n", genreRatings);
 
-    auto avrRating = calculateAverageRating(db);
-    std::print("Average books rating in library: {}\n", avrRating);
+    // auto avrRating = calculateAverageRating(db);
+    // std::print("Average books rating in library: {}\n", avrRating);
 
     // Filters
     auto filtered = filterBooks(db.begin(), db.end(), all_of(YearBetween(1900, 1999), RatingAbove(4.5)));
@@ -69,7 +69,7 @@ int main() {
     if (orwellBookIt != db.end()) {
         std::print("\n\nTransparent lookup by authors. Found Orwell's book: {}\n", *orwellBookIt);
     }
-    */
+    // */
 
     return 0;
 }
