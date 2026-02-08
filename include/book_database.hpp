@@ -2,9 +2,7 @@
 
 #include <algorithm>
 #include <initializer_list>
-#include <print>
 #include <string>
-#include <string_view>
 #include <unordered_set>
 #include <vector>
 
@@ -20,10 +18,6 @@ public:
     // Type aliases
 
     using value_type = BookContainer::value_type;
-    // using reference = BookContainer::reference;
-    // using const_reference = BookContainer::const_reference;
-    // using pointer = BookContainer::pointer;
-    // using const_pointer = BookContainer::const_pointer;
     using size_type = BookContainer::size_type;
 
     using iterator = BookContainer::iterator;
@@ -72,9 +66,9 @@ public:
 
     template <typename... Args>
     void EmplaceBack(Args &&...args) {
-        books_.emplace_back(std::forward<Args>(args)...);
-        auto [it, is_emplaced] = authors_.emplace(books_.back().author);
-        books_.back().author = *it;
+        auto &book = books_.emplace_back(std::forward<Args>(args)...);
+        auto [it, is_emplaced] = authors_.emplace(book.author);
+        book.author = *it;
     }
 
     const BookContainer &GetBooks() const { return books_; }

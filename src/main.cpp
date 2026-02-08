@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <print>
 
 #include "book_database.hpp"
 #include "comparators.hpp"
@@ -52,8 +53,8 @@ int main() {
     auto genreRatings = calculateGenreRatings(db.begin(), db.end());
     std::print("\n\nAverage ratings by genres: {}\n", genreRatings);
 
-    // auto avrRating = calculateAverageRating(db);
-    // std::print("Average books rating in library: {}\n", avrRating);
+    auto avrRating = calculateAverageRating(db);
+    std::print("Average books rating in library: {}\n", avrRating);
 
     // Filters
     auto filtered = filterBooks(db.begin(), db.end(), all_of(YearBetween(1900, 1999), RatingAbove(4.5)));

@@ -10,15 +10,7 @@ namespace bookdb {
 
 template <typename T>
 concept BookContainerLike = requires {
-    // { typename T::value_type{} } -> std::convertible_to<Book>;
-    // requires std::
     typename T::value_type;
-    // requires std::is_same_v<decltype(T::value_type::author), std::string_view>;
-    // requires std::is_same_v<decltype(T::value_type::title), std::string_view>;
-    // requires std::is_same_v<decltype(T::value_type::year), int>;
-    // requires std::is_same_v<decltype(T::value_type::genre), Genre>;
-    // requires std::is_same_v<decltype(T::value_type::rating), double>;
-    // requires std::is_same_v<decltype(T::value_type::read_count), int>;
     { T::value_type::author } -> std::convertible_to<std::string_view>;
     { T::value_type::title } -> std::convertible_to<std::string_view>;
     { T::value_type::year } -> std::convertible_to<int>;

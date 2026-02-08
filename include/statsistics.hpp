@@ -6,14 +6,10 @@
 #include <iterator>
 #include <random>
 #include <sstream>
-#include <stdexcept>
-#include <string_view>
 
 #include "book.hpp"
 #include "book_database.hpp"
 #include "comparators.hpp"
-
-#include <print>
 
 namespace bookdb {
 
@@ -34,27 +30,25 @@ auto buildAuthorHistogramFlat(const BookDatabase<T> &cont, Comparator comp = {})
 }
 
 template <BookIterator Iterator>
-auto calculateGenreRatings(Iterator begin, Iterator end) {
+auto calculateGenreRatings(Iterator first, Iterator last) {
     struct Stats {
         double rating = 0.0;
         int count = 0;
     };
     std::flat_map<Genre, Stats> tmp;
 
-    std::for_each(begin, end, [&tmp](const Book &book) {
+    std::for_each(first, last, [&tmp](const Book &book) {
         auto [it, is_emplaced] = tmp.try_emplace(book.genre);
         it->second.rating += book.rating;
-        it->second.count;
+        ++it->second.count;
     });
 
     std::flat_map<Genre, double> ratings;
     std::for_each(tmp.begin(), tmp.end(), [&ratings](const auto &pair) {
         const auto &[genre, stats] = pair;
         if (stats.count > 0) {
-            // ratings[genre] = stats.rating / stats.count;
             ratings.emplace(genre, stats.rating / stats.count);
         } else {
-            // ratings[genre] = 0;
             ratings.emplace(genre, 0);
         }
     });
@@ -63,15 +57,26 @@ auto calculateGenreRatings(Iterator begin, Iterator end) {
 }
 
 template <BookContainerLike T>
+auto calculateAverageRating(const BookDatabase<T> &cont) {
+    if (cont.size() == 0) {
+        return 0.;
+    }
+
+    double sum = std::transform_reduce(cont.cbegin(), cont.cend(), 0.0, std::plus<>(),
+                                       [](const Book &book) { return book.rating; });
+    return sum / cont.size();
+}
+
+template <BookContainerLike T>
 auto sampleRandomBooks(const BookDatabase<T> &cont, size_t count) {
     std::vector<std::reference_wrapper<const Book>> books;
 
     if (count >= cont.size()) {
         books.reserve(cont.size());
-        std::transform(cont.begin(), cont.end(), std::back_inserter(books),
+        std::transform(cont.cbegin(), cont.cend(), std::back_inserter(books),
                        [](const Book &book) { return std::cref(book); });
     } else if (count > 0) {
-        std::sample(cont.begin(), cont.end(), std::back_inserter(books), count, std::mt19937{std::random_device{}()});
+        std::sample(cont.cbegin(), cont.cend(), std::back_inserter(books), count, std::mt19937{std::random_device{}()});
     }
 
     return books;
@@ -110,9 +115,10 @@ struct formatter<std::flat_map<std::string, size_t, bookdb::TransparentStringLes
         std::stringstream ss;
         const int left_shift = 20;
         const int right_shift = 5;
+        ss << "\n";
         ss << std::setw(left_shift) << "Author" << " | books\n";
         std::for_each(authors.begin(), authors.end(), [&ss](const auto &pair) {
-            ss << std::setw(left_shift) << pair.first << std::setw(right_shift) << pair.second << "\n";
+            ss << std::setw(left_shift) << pair.first << " - " << std::setw(right_shift) << pair.second << "\n";
         });
         return format_to(fc.out(), "{}", ss.str());
     }
@@ -129,10 +135,11 @@ struct formatter<std::flat_map<bookdb::Genre, double>> {
         std::stringstream ss;
         const int left_shift = 20;
         const int right_shift = 5;
+        ss << "\n";
         ss << std::setw(left_shift) << "Genre" << " | Rating\n";
         std::for_each(raitings.begin(), raitings.end(), [&ss](const auto &pair) {
-            ss << std::setw(left_shift) << std::format("{}", pair.first) << std::setw(right_shift) << pair.second
-               << "\n";
+            ss << std::setw(left_shift) << std::format("{}", pair.first) << " - " << std::setw(right_shift)
+               << pair.second << "\n";
         });
         return format_to(fc.out(), "{}", ss.str());
     }
