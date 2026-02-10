@@ -1,25 +1,36 @@
 #pragma once
 
+#include <array>
 #include <format>
 #include <iomanip>
 #include <stdexcept>
+#include <string>
 #include <string_view>
 
 namespace bookdb {
 
 enum class Genre { Fiction, NonFiction, SciFi, Biography, Mystery, Unknown };
 
+// clang-format off
+constexpr std::array genreString = {
+    std::pair{Genre::Fiction, "Fiction"},
+    std::pair{Genre::NonFiction, "NonFiction"},
+    std::pair{Genre::SciFi, "SciFi"},
+    std::pair{Genre::Biography, "Biography"},
+    std::pair{Genre::Mystery, "Mystery"},
+    std::pair{Genre::Unknown, "Unknown"}
+};
+// clang-format on
+
 // Ваш код для constexpr преобразования строк в enum::Genre и наоборот здесь
 
 constexpr Genre GenreFromString(std::string_view s) {
-    // clang-format off
-    if (s == "Fiction") return Genre::Fiction;
-    if (s == "NonFiction") return Genre::NonFiction;
-    if (s == "SciFi") return Genre::SciFi;
-    if (s == "Biography") return Genre::Biography;
-    if (s == "Mystery") return Genre::Mystery;
-    if (s == "Unknown") return Genre::Unknown;
-    // clang-format on
+
+    auto it = std::find_if(genreString.begin(), genreString.end(), [&s](const auto &p) { return p.second == s; });
+
+    if (it != genreString.end()) {
+        return it->first;
+    }
 
     std::string msg = "Unsupported genre ";
     msg += s;
@@ -27,21 +38,16 @@ constexpr Genre GenreFromString(std::string_view s) {
 }
 
 constexpr std::string GenreToString(const Genre genre) {
-    // clang-format off
-    std::string genreStr;
-    using bookdb::Genre;
-    switch (genre) {
-        case Genre::Fiction:    genreStr = "Fiction"; break;
-        case Genre::Mystery:    genreStr = "Mystery"; break;
-        case Genre::NonFiction: genreStr = "NonFiction"; break;
-        case Genre::SciFi:      genreStr = "SciFi"; break;
-        case Genre::Biography:  genreStr = "Biography"; break;
-        case Genre::Unknown:    genreStr = "Unknown"; break;
-        default:
-            throw std::logic_error{"Unsupported bookdb::Genre"};
-        }
-    // clang-format on
-    return genreStr;
+    auto it =
+        std::find_if(genreString.begin(), genreString.end(), [&genre](const auto &p) { return p.first == genre; });
+
+    if (it != genreString.end()) {
+        return it->second;
+    }
+
+    std::string msg = "Unsupported genre ";
+    msg += std::to_string(static_cast<int>(genre));
+    throw std::logic_error(msg);
 }
 
 struct Book {
@@ -54,14 +60,14 @@ struct Book {
     double rating;
     int read_count;
 
-    constexpr Book(const std::string &t, const std::string_view &a, const int y, const Genre &g, const double r,
-                   int count)
-        : author(a), title(t), year(y), genre(g), rating(r), read_count(count) {}
+    constexpr Book(const std::string &title, const std::string_view &author, const int year, const Genre &genre,
+                   const double rating, int read_count)
+        : author(author), title(title), year(year), genre(genre), rating(rating), read_count(read_count) {}
 
-    constexpr Book(const std::string &t, const std::string_view &a, const int y, const std::string_view &g,
-                   const double r, int count)
-        : author(a), title(t), year(y), genre(Genre::Unknown), rating(r), read_count(count) {
-        genre = GenreFromString(g);
+    constexpr Book(const std::string &title, const std::string_view &author, const int year,
+                   const std::string_view &genre, const double rating, int read_count)
+        : author(author), title(title), year(year), genre(Genre::Unknown), rating(rating), read_count(read_count) {
+        this->genre = GenreFromString(genre);
     }
 
     bool operator==(const Book &other) const {
