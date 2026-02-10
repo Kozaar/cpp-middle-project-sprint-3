@@ -2,24 +2,43 @@
 
 #include <concepts>
 #include <iterator>
+#include <type_traits>
 
 #include "book.hpp"
 
 namespace bookdb {
 
 template <typename T>
-concept BookContainerLike = true;
+concept BookContainerLike = requires {
+    typename T::value_type;
+    { T::value_type::author } -> std::convertible_to<std::string_view>;
+    { T::value_type::title } -> std::convertible_to<std::string_view>;
+    { T::value_type::year } -> std::convertible_to<int>;
+    { T::value_type::genre } -> std::convertible_to<Genre>;
+    { T::value_type::rating } -> std::convertible_to<double>;
+    { T::value_type::read_count } -> std::convertible_to<int>;
+};
 
 template <typename T>
-concept BookIterator = true;
+concept BookIterator = std::bidirectional_iterator<T> &&
+                       (std::same_as<std::iter_value_t<T>, Book> || std::same_as<std::iter_reference_t<T>, Book &>);
 
 template <typename S, typename I>
-concept BookSentinel = true;
+concept BookSentinel = requires(const I &iter, const S &sentinel) {
+    requires BookIterator<I>;
+    requires std::semiregular<S>;
+    { iter == sentinel } -> std::convertible_to<bool>;
+    { sentinel == iter } -> std::convertible_to<bool>;
+};
 
 template <typename P>
-concept BookPredicate = true;
+concept BookPredicate = requires(P predicate, const Book &book) {
+    { predicate(book) } -> std::convertible_to<bool>;
+};
 
 template <typename C>
-concept BookComparator = true;
+concept BookComparator = requires(const Book &lhs, const Book &rhs, C c) {
+    { c(lhs, rhs) } -> std::convertible_to<bool>;
+};
 
 }  // namespace bookdb
